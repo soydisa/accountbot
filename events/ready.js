@@ -28,7 +28,7 @@ module.exports = {
             const accounts = await publicAccount.countDocuments();
 
             client.user.setActivity({
-                name: `/register • ${accounts} Accounts v${process.env.Version}`,
+                name: `/register • ${accounts} Accounts • v${process.env.Version}`,
                 type: ActivityType.Playing,
             });
 
