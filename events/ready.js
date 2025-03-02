@@ -62,6 +62,8 @@ module.exports = {
             });
           
             console.log("SelfAdv cleaning scheduler activated");
+
+            console.log("Startup completed!");
         } catch (err) {
             if (err.code === '11000') {
                 console.log('This IP is not whitelisted on our database!')
