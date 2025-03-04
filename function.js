@@ -1,6 +1,8 @@
 const { EmbedBuilder } = require("discord.js");
 const cron = require("node-cron");
+const fs = require('fs');
 require("dotenv").config();
+const upgrades = JSON.parse(fs.readFileSync('./upgrades.json', 'utf8'));
 
 function assignRandomMission(user) {
     const missionTypes = ["0", "1"];
@@ -101,6 +103,18 @@ async function resetChannel(client) {
       console.error("Errore nella pulizia del canale ADV:", error);
     }
 }
+
+function upgradeEmbed(index, color) {
+    if (index < 0 || index-1 >= upgrades.length) return null;
+
+    return new EmbedBuilder()
+        .setColor(color)
+        .setTitle(upgrades[index].title)
+        .addFields(
+            { name: "<:stars:1140524749500465234> Price", value: `<:space:1140523440453988433> ${upgrades[index].price}`, inline: true },
+            { name: "<:user:1140523944936493116> Member Slot", value: `<:space:1140523440453988433> ${upgrades[index].slots}`, inline: true }
+        );
+}
   
 
-module.exports = { assignRandomMission, checkMissions, resetChannel }
+module.exports = { assignRandomMission, checkMissions, resetChannel, upgradeEmbed }

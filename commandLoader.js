@@ -3,6 +3,10 @@ const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const mode = process.argv[2] || 'main';
+const token = mode === 'test' ? process.env.TestToken : process.env.Token;
+const clientId = mode === 'test' ? process.env.TestClientID : process.env.ClientID;
+
 const commands = [];
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
@@ -21,18 +25,17 @@ for (const folder of commandFolders) {
 	}
 }
 
-const rest = new REST().setToken(process.env.Token);
+const rest = new REST().setToken(token);
 
 (async () => {
 	try {
-		console.log(`Registering ${commands.length} commands on the Client`);
+		console.log(`Registering ${commands.length} commands on the ${mode} bot`);
 		const data = await rest.put(
-            Routes.applicationCommands(process.env.ClientID),
-            { body: commands },        
+			Routes.applicationCommands(clientId),
+			{ body: commands },
 		);
-
-		console.log(`Registered ${data.length} commands on the Client`);
+		console.log(`Successfully registered ${data.length} commands on the ${mode} bot`);
 	} catch (error) {
-		console.error(error);
+		console.error('Error while registering commands:', error);
 	}
 })();

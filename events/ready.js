@@ -29,7 +29,8 @@ module.exports = {
 
             client.user.setActivity({
                 name: `/register • ${accounts} Accounts • v${process.env.Version}`,
-                type: ActivityType.Playing,
+                type: ActivityType.Custom
+                
             });
 
             await publicAccount.updateMany(
@@ -57,13 +58,14 @@ module.exports = {
               await resetChannel(client);
             }
 
-            cron.schedule("59 23 * * *", async () => {
+            cron.schedule("00 23 * * *", async () => {
               await resetChannel(client);
             });
           
             console.log("SelfAdv cleaning scheduler activated");
-
+            
             console.log("Startup completed!");
+            
         } catch (err) {
             if (err.code === '11000') {
                 console.log('This IP is not whitelisted on our database!')

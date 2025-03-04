@@ -13,7 +13,7 @@ module.exports = {
         const sub = interaction.options.getSubcommand();
 
         if (interaction.user.id != 783581145522634752) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You are not permitted to do this!`, ephemeral: true })
-        const managerMembers = await managersMem.findOne({ _id: "67c32c0276e6aacc05b5b67e" });
+        const managerMembers = await managersMem.findOne({ ID: 1 });
 
         if (managerMembers) {
             switch (sub) {

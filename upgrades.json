@@ -1,0 +1,22 @@
+[
+    {
+        "title": "<:space_rocket:1140523561681956974> Iron Upgrade",
+        "price": "18 Coins",
+        "slots": "15 Slots"
+    },
+    {
+        "title": "<:space_rocket:1140523561681956974> Gold Upgrade",
+        "price": "24 Coins",
+        "slots": "20 Slots"
+    },
+    {
+        "title": "<:space_rocket:1140523561681956974> Diamond Upgrade",
+        "price": "28 Coins",
+        "slots": "25 Slots"
+    },
+    {
+        "title": "<:space_rocket:1140523561681956974> Emerald Upgrade",
+        "price": "34 Coins",
+        "slots": "30 Slots"
+    }
+]

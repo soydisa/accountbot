@@ -1,7 +1,11 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
 const club = require('../../schemas/club');
+const managerMemb = require('../../schemas/managerMembers');
 const publicAccount = require('../../schemas/publicAccount');
 const crypto = require('crypto');
+const fs = require('fs');
+const { upgradeEmbed } = require('../../function');
+const upgrades = JSON.parse(fs.readFileSync('./upgrades.json', 'utf8'));
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,6 +17,7 @@ module.exports = {
     .addSubcommand(command => command.setName('info').setDescription("View informations about a Club"))
     .addSubcommand(command => command.setName('leave').setDescription("Leave a Club"))
     .addSubcommand(command => command.setName('advertise').setDescription("Advertise your Club"))
+    .addSubcommand(command => command.setName('upgrades').setDescription("Upgrade your club"))
     .addSubcommand(command => command.setName('kick').setDescription("Kick a member from your Club").addStringOption(option => option.setName('user').setDescription('Account ID / Username / Discord ID').setRequired(true)))
     .addSubcommand(command => command.setName('broadcast').setDescription("Broadcast something to your Club").addStringOption(option => option.setName('message').setDescription('The message to broadcast').setRequired(true))),
     async execute(interaction, client) {
@@ -97,7 +102,7 @@ module.exports = {
 
                 const clubID = "A" + name.charAt(0).toUpperCase() + "-" + fourDigitCode;
 
-                await club.create({ President: interaction.user.id, Color: color, Name: name, ClubID: clubID, Private: Boolean(private) });
+                await club.create({ President: interaction.user.id, Color: color, Name: name, ClubID: clubID, Private: Boolean(private), Managers: [], MaxMembers: 10, Coins: 0, UniqueMembers: [interaction.user.id], UpgradeLevel: 0 });
                 const clubData = await club.findOne({ ClubID: clubID })
                 clubData.Members.push(interaction.user.id)
                 await clubData.save();
@@ -115,7 +120,7 @@ module.exports = {
             const schemaData4 = await publicAccount.findOne({ DiscordID: interaction.user.id })
     
             if (!schemaData4) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
-            if (!schemaData3) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't are a President of a Club`, ephemeral: true })
+            if (!schemaData3) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You aren't the President of a Club`, ephemeral: true })
 
             if (schemaData4.Suspended) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your Account is Suspended`, ephemeral: true })
 
@@ -132,6 +137,7 @@ module.exports = {
             break;
 
             case 'join':
+            
             const schemaData5 = await publicAccount.findOne({ DiscordID: interaction.user.id })
             if (!schemaData5) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
 
@@ -141,7 +147,7 @@ module.exports = {
                 id: new TextInputBuilder()
                 .setCustomId(`club-join-id`)
                 .setLabel(`Select a Club`)
-                .setPlaceholder(`Club ID`)
+                .setPlaceholder(`Club ID / Name`)
                 .setStyle(TextInputStyle.Short)
                 .setRequired(true)
                 .setMinLength(3)
@@ -167,23 +173,38 @@ module.exports = {
 
             if (submitted2) {
 
+                let clubInfo;
+
                 const [ id ] = Object.keys(fields2).map(key => submitted2.fields.getTextInputValue(fields2[key].data.custom_id))
+
+                const idCheck = await club.findOne({ ClubID: id });
+                const nameCheck = await club.findOne({ Name: id});
+
+                if (idCheck) {
+                    clubInfo = idCheck.ClubID
+                } else if (nameCheck) {
+                    clubInfo = nameCheck.ClubID
+                } else if (!idCheck && !nameCheck) {
+                    return await submitted3.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club can't be found`, ephemeral: true });
+                } else {
+                    return await submitted3.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club can't be found`, ephemeral: true })
+                }
 
                 const schemaData6 = await publicAccount.findOne({ DiscordID: interaction.user.id })
 
-                const clubData2 = await club.findOne({ ClubID: id })
+                const clubData2 = await club.findOne({ ClubID: clubInfo })
 
                 if (!schemaData6) return await submitted2.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
 
                 if (!clubData2) return await submitted2.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club cannot be found`, ephemeral: true })
 
-                if (clubData2.Members.length >= 10) return await submitted2.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club is full!`, ephemeral: true })
+                if (clubData2.Members.length >= clubData2.MaxMembers) return await submitted2.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club is full!`, ephemeral: true })
 
                 if (clubData2.Members.includes(interaction.user.id)) return await submitted2.reply({ content: `<:cross:1143156155586199602> **Oh no!** You are already a member of this Club`, ephemeral: true })
 
                 if (clubData2.Private) {
 
-                    await submitted2.reply({ content: `<:clouds:1140524016537436171> **Loading** I'm trying to send the Join Request...`, ephemeral: true })
+                    await submitted2.deferReply({ ephemeral: true })
 
                     try {
                         const user = await client.users.fetch(clubData2.President)
@@ -203,6 +224,17 @@ module.exports = {
                         await submitted2.editReply({ content: `<:verified_2:1140890170661548073> **Oh yes!** The request has been sent! You will be notified in DM if you get accepted`, ephemeral: true })
 
                         collector.on('collect', async but => {
+                            if (clubData2.Members.length >= clubData2.MaxMembers) {
+                                await msg2.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your Club is full, you can't accept the request!`, ephemeral: true })
+                                return await msg2.edit({ content: `<:space_rocket:1140523561681956974> **Join Request** The request has been canceled`, components: [] })
+                            }
+                            
+                            if (!clubData2.UniqueMembers.includes(interaction.user.id)) {
+                                clubData2.UniqueMembers.push(interaction.user.id);
+                                clubData2.Coins = clubData2.Coins + 1;
+                                await clubData2.save();
+                            }
+                            
                             clubData2.Members.push(interaction.user.id)
                             await clubData2.save();
                             schemaData6.Club.push(clubData2.Name);
@@ -213,7 +245,7 @@ module.exports = {
 
                             try {
                                 const userButton = await client.users.fetch(interaction.user.id)
-                                await userButton.send({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your request for ${clubData2.Name} has been accepted`, ephemeral: true })
+                                await userButton.send({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your request for Account ${clubData2.Name} has been accepted`, ephemeral: true })
                             } catch (err) {
                                 return;
                             }
@@ -224,6 +256,12 @@ module.exports = {
                     }
 
                 } else {
+                    if (!clubData2.UniqueMembers.includes(interaction.user.id)) {
+                        clubData2.UniqueMembers.push(interaction.user.id);
+                        clubData2.Coins = clubData2.Coins + 1;
+                        await clubData2.save();
+                    }
+                    
                     clubData2.Members.push(interaction.user.id)
                     await clubData2.save();
                     schemaData6.Club.push(clubData2.Name);
@@ -254,7 +292,7 @@ module.exports = {
                 .setCustomId(`club-leave-id`)
                 .setLabel(`Select a Club`)
                 .setStyle(TextInputStyle.Short)
-                .setPlaceholder('Club ID')
+                .setPlaceholder('Club ID / Name')
                 .setRequired(true)
                 .setMinLength(3)
                 .setMaxLength(13)
@@ -279,11 +317,26 @@ module.exports = {
         
             if (submitted4) {
 
+                let clubInfo;
+
                 const [ id ] = Object.keys(fields4).map(key => submitted4.fields.getTextInputValue(fields4[key].data.custom_id))
+
+                const idCheck = await club.findOne({ ClubID: id });
+                const nameCheck = await club.findOne({ Name: id});
+
+                if (idCheck) {
+                    clubInfo = idCheck.ClubID
+                } else if (nameCheck) {
+                    clubInfo = nameCheck.ClubID
+                } else if (!idCheck && !nameCheck) {
+                    return await submitted3.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club can't be found`, ephemeral: true });
+                } else {
+                    return await submitted3.reply({ content: `<:cross:1143156155586199602> **Oh no!** This Club can't be found`, ephemeral: true })
+                }
 
                 const schemaData10 = await publicAccount.findOne({ DiscordID: interaction.user.id })
 
-                const clubData4 = await club.findOne({ ClubID: id })
+                const clubData4 = await club.findOne({ ClubID: clubInfo })
 
                 if (!schemaData10) return await submitted4.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
 
@@ -303,11 +356,32 @@ module.exports = {
                     { $pull: { Club: clubData4.Name } }
                 );
     
-                await submitted4.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** You have leaved the Club`, ephemeral: true })
+                await submitted4.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** You have left the Club`, ephemeral: true })
+                
+            	const serverClub2 = client.guilds.cache.get(process.env.ClubGuildID);
+
+            	if (serverClub2) {
+                    const clubUser2 = await client.users.fetch(interaction.user.id);
+                	if (clubUser2) {
+                    	const clubMember2 = serverClub2.members.cache.get(clubUser2.id);
+                    	if (clubMember2) {
+                        	const role2 = serverClub2.roles.cache.find(role => role.name === `Account ${clubData4.Name}`)
+                        	if (role2) {
+                            	if (clubMember2.roles.cache.has(role2.id)) {
+                                	await clubMember2.roles.remove(role2);
+                                    const channel2 = client.channels.cache.find(channel => channel.name === `🍻-${clubData4.Name.toLowerCase()}`);
+                                    if (channel2) {
+                                        await channel2.send({ content: `😭 **<@${clubMember2.user.id}> has left the club...**` })
+                                    }
+                            	}
+                        	}
+                        }
+                	}
+            	}
 
                 try {
                     const user = await client.users.fetch(clubData4.President)
-                    await user.send({ content: `<:cross:1143156155586199602> **Member Lost** \`${interaction.user} (${interaction.user.username})\` has leaved your Club`, ephemeral: true })
+                    await user.send({ content: `<:cross:1143156155586199602> **Member Lost** \`${interaction.user} (${interaction.user.username})\` has left your Club`, ephemeral: true })
                 } catch (err) {
                     return;
                 }
@@ -375,10 +449,58 @@ module.exports = {
     
                 if (!schemaData7) return await submitted2.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
 
+                let private = ""
+                
+                if (clubData3.Private) {
+                    private = "Yes"
+                } else {
+                    private = "No"
+                }
+                
+                const schemaData16 = await publicAccount.findOne({ DiscordID: clubData3.President })
+                
                 const embed = new EmbedBuilder()
                 .setColor(clubData3.Color)
-                .setAuthor({ name: `Account ${clubData3.Name}` })
-                .addFields({ name: `Name`, value: `\`\`\`${clubData3.Name}\`\`\`` }, { name: `President`, value: `<@${clubData3.President}>` }, { name: `Club ID`, value: `\`\`\`${clubData3.ClubID}\`\`\`` }, { name: `Members`, value: `\`\`\`${clubData3.Members.length} / 10\`\`\`` }, { name: `Private Club`, value: `\`\`\`${clubData3.Private}\`\`\`` })
+                .setTitle(`<:clouds:1140524016537436171> Account ${clubData3.Name}`)
+                .addFields(
+                    { name: `<:flag:1346418227261079634> Name`, value: `\`\`\`${clubData3.Name}\`\`\``, inline: true },
+                    { name: `<:crown:1140523601326522388> President`, value: `\`\`\`${schemaData16.Username}\`\`\``, inline: true }, 
+                    { name: `<:chain:1140525058780049529> Club ID`, value: `\`\`\`${clubData3.ClubID}\`\`\``, inline: true }); 
+                
+                const manager = await managerMemb.findOne({ ID: 1 })
+                
+                if (interaction.user.id === clubData3.President || manager.Staff.includes(interaction.user.id)) {
+                    embed.addFields({ name: `<:money:1146327106624692224> Coins`, value: `\`\`\`${clubData3.Coins}\`\`\`` })
+                }
+
+                let Livello = "None"
+
+                if (clubData3.UpgradeLevel <= 0) {
+                    Livello = "Coal"
+                } else {
+                    Livello = upgrades[clubData3.UpgradeLevel - 1].title.split(" ")[1]
+                }
+                
+                embed.addFields(
+                    { name: `<:space_rocket:1140523561681956974> Upgrade Level`, value: `\`\`\`${Livello}\`\`\``, inline: true }, 
+                    { name: `<:team:1140523980235735040> Members`, value: `\`\`\`${clubData3.Members.length} / ${clubData3.MaxMembers}\`\`\``, inline: true }
+                )
+                
+                if (interaction.user.id === clubData3.President || manager.Staff.includes(interaction.user.id)) {
+                    let Membri = [];
+                    let numero = 0;
+                    for (let i = 0; i < clubData3.Members.length; i++) {
+                        let membro = clubData3.Members[i];
+                        numero = numero + 1;
+                        const membro2 = await publicAccount.findOne({ DiscordID: membro });
+                        Membri.push(`${numero}. ` + membro2.Username);
+                    };
+                
+                    embed.addFields({ name: `<:folder:1146325378730836029> Member List`, value: `\`\`\`${Membri.join("\n")}\`\`\`` })
+                    
+                }
+                
+                embed.addFields({ name: `<:stop:1141381990331981824> Private Club`, value: `\`\`\`${private}\`\`\`` })
         
                 await submitted3.reply({ embeds: [embed], ephemeral: true })
             }
@@ -449,7 +571,7 @@ module.exports = {
     
             if (!schemaData13) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** This User cannot be found`, ephemeral: true })
     
-            if (id === schemaData12.President) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You can't kick the President of the Club`, ephemeral: true })
+            if (schemaData12.President === accountInfo) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You can't kick the President of the Club`, ephemeral: true })
     
             if (!schemaData12.Members.includes(interaction.user.id)) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** This User isn't a member of your Club`, ephemeral: true })
     
@@ -464,10 +586,31 @@ module.exports = {
             );
         
             await interaction.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** You have kicked <@${accountInfo}> from the Club`, ephemeral: true })
-    
+            
+            const serverClub = client.guilds.cache.get(process.env.ClubGuildID);
+
+            if (serverClub) {
+                const clubUser = await client.users.fetch(accountInfo);
+                if (clubUser) {
+                    const clubMember = serverClub.members.cache.get(clubUser.id);
+                    if (clubMember) {
+                        const role = serverClub.roles.cache.find(role => role.name === `Account ${schemaData12.Name}`)
+                        if (role) {
+                            if (clubMember.roles.cache.has(role.id)) {
+                                await clubMember.roles.remove(role);
+                                const channel3 = client.channels.cache.find(channel => channel.name === `🍻-${schemaData12.Name.toLowerCase()}`);
+                                if (channel3) {
+                                    await channel3.send({ content: `🚫 **<@${clubMember.user.id}> has been kicked from the club by <@${interaction.user.id}>...**` })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             try {
                 const user = await client.users.fetch(accountInfo)
-                await user.send({ content: `<:cross:1143156155586199602> **Kicked** \`${interaction.user} (${interaction.user.username})\` has kicked you from **Account ${schemaData12.Name}**`, ephemeral: true })
+                await user.send({ content: `<:cross:1143156155586199602> **Kicked** \`${interaction.user.id} (${interaction.user.username})\` has kicked you from **Account ${schemaData12.Name}**`, ephemeral: true })
             } catch (err) {
                 return;
             }
@@ -487,7 +630,7 @@ module.exports = {
                 const embed = new EmbedBuilder()
                 .setColor(schemaData15.Color)
                 .setTitle(`<:mail:1140524950030127155> Account ${schemaData15.Name}`)
-                .setDescription(`**Account ${schemaData15.Name}** is looking for ${10 - schemaData15.Members.length} members!\n\n_Join now_ with \`/club join\`!`)
+                .setDescription(`**Account ${schemaData15.Name}** is looking for ${schemaData15.MaxMembers - schemaData15.Members.length} members!\n\n_Join now_ with \`/club join\`!`)
                 const msg = await channel.send({ content: '@here', embeds: [embed] });
                 await interaction.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your server has been advertised on our Main Server: ${msg.url}`, ephemeral: true });
                 schemaData15.LastAdvertised = new Date();
@@ -508,6 +651,97 @@ module.exports = {
                 await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You can advertise your Club again in \`${timeLeft}\``, ephemeral: true });
             }
 
+            break;
+
+            case 'upgrades':
+                const schemaData17 = await publicAccount.findOne({ DiscordID: interaction.user.id })
+                if (!schemaData17) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
+                const schemaData18 = await club.findOne({ President: interaction.user.id })
+                if (!schemaData18) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You aren't the President of a Club`, ephemeral: true })
+
+                await interaction.deferReply({ ephemeral: true });
+
+                let pagina = 0;
+
+                const buttonBack = new ButtonBuilder()
+                .setCustomId('club-upgrade-back')
+                .setEmoji('<:backward:1141603760574046228>')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(true)
+
+                const buttonBuy = new ButtonBuilder()
+                .setCustomId('club-upgrade-buy')
+                .setEmoji('<:money:1146327106624692224>')
+                .setStyle(ButtonStyle.Secondary)
+
+                if (schemaData18.UpgradeLevel) {
+                    buttonBuy.setDisabled(true)
+                }
+
+                const buttonNext = new ButtonBuilder()
+                .setCustomId('club-upgrade-next')
+                .setEmoji('<:forward:1141603712809316392>')
+                .setStyle(ButtonStyle.Secondary)
+
+                const actionRow2 = new ActionRowBuilder().addComponents(buttonBack, buttonBuy, buttonNext);
+
+                const msg3 = await interaction.editReply({ embeds: [upgradeEmbed(pagina, schemaData18.Color)], components: [actionRow2], ephemeral: true });
+
+                const collector2 = msg3.createMessageComponentCollector({ time: 86400000 })
+
+                collector2.on('collect', async i => {
+                    await i.deferUpdate();
+
+                    const schemaData19 = await club.findOne({ President: interaction.user.id })
+                    if (!schemaData19) return await i.followUp({ content: `<:cross:1143156155586199602> **Oh no!** You aren't the President of a Club`, ephemeral: true })
+
+                    if (!msg3) return;
+
+                    if (i.customId === 'club-upgrade-back' && pagina > 0) {
+                        pagina--;
+                    } else if (i.customId === 'club-upgrade-next') {
+                        pagina++;
+                    } else if (i.customId === 'club-upgrade-buy') {
+                        const priceArray = upgrades[pagina].price.split(" ");
+                        const price = priceArray[0];
+
+                        const slotArray = upgrades[pagina].slots.split(" ");
+                        const slot = slotArray[0];
+
+                        const nameArray = upgrades[pagina].title.split(" ");
+                        const name = nameArray[1];
+
+                        if (schemaData19.Coins <= Number(price)) return await i.followUp({ content: `<:cross:1143156155586199602> **Oh no!** You don't have enough coins to buy this upgrade`, ephemeral: true });
+
+                        schemaData19.Coins -= price;
+                        schemaData19.UpgradeLevel = pagina + 1;
+                        schemaData19.MaxMembers = slot;
+                        schemaData19.save();
+
+                        const embed = new EmbedBuilder()
+                        .setColor("Green")
+                        .setTitle("<:money:1146327106624692224> Upgrade purchased")
+                        .addFields(
+                            { name: `<:flag:1346418227261079634> Club Name`, value: `\`\`\`Account ${schemaData19.Name}\`\`\``, inline: true},
+                            { name: `<:stars:1140524749500465234> Upgrade Level`, value: `\`\`\`${name}\`\`\``,  }, 
+                            { name: `<:money:1146327106624692224> Price`, value: `\`\`\`${price} Coins\`\`\``, inline: true }, 
+                            { name: `<:user:1140523944936493116> Max Members`, value: `\`\`\`${slot}\`\`\``, inline: true }
+                        )
+
+                       return await interaction.editReply({ embeds: [embed], components: [], ephemeral: true });
+
+                    }
+
+                    buttonBuy.setDisabled(pagina !== schemaData19.UpgradeLevel);
+                    buttonBack.setDisabled(pagina === 0);
+                    buttonNext.setDisabled(pagina === upgrades.length - 1);
+
+                    try {
+                        await interaction.editReply({ embeds: [upgradeEmbed(pagina, schemaData19.Color)], components: [actionRow2], ephemeral: true });
+                    } catch (error) {
+                        console.error("Upgrade embed error:", error);
+                    }
+                })
             break;
         }
     }

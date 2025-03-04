@@ -1,32 +1,51 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const publicAccount = require('../../schemas/publicAccount');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('leaderboard')
-    .setDescription("View the leaderboard"),
+        .setName('leaderboard')
+        .setDescription("View the leaderboard"),
     async execute(interaction, client) {
+        await interaction.deferReply({ ephemeral: true });
 
-        const leaderboardDataMore = await publicAccount.find({}).sort({ Likes: -1 }).limit(25);
-        const leaderboardDataLess = await publicAccount.find({}).sort({ Likes: 1 }).limit(25);
+        const leaderboardDataMore = await publicAccount.find({}).sort({ Likes: -1 }).limit(20);
+        const leaderboardDataLess = await publicAccount.find({}).sort({ Likes: 1 }).limit(20);
 
-        const embedMore = new EmbedBuilder()
-        .setTitle('<:thumbs_up:1140523687456542840> Leaderboard')
+        const embedMore = createEmbed('<:thumbs_up:1140523687456542840> Leaderboard', leaderboardDataMore);
+        const embedLess = createEmbed('<:thumbs_down:1140523745451200583> Leaderboard', leaderboardDataLess);
+
+        const selectRow = createSelectMenu();
+
+        const msg = await interaction.editReply({ embeds: [embedMore], components: [selectRow] });
+
+        const collector = msg.createMessageComponentCollector({ time: 180000, filter: i => i.user.id === interaction.user.id });
+
+        collector.on('collect', async i => {
+            const value = i.values[0];
+            if (value === 'more-likes') {
+                await interaction.editReply({ embeds: [embedMore], components: [selectRow], ephemeral: true });
+            } else if (value === 'less-likes') {
+                await interaction.editReply({ embeds: [embedLess], components: [selectRow], ephemeral: true });
+            }
+            await i.deferUpdate();
+        });
+    }
+};
+
+function createEmbed(title, data) {
+    const embed = new EmbedBuilder()
+        .setTitle(title)
         .setColor("Blurple");
 
-        leaderboardDataMore.forEach((data, index) => {
-            embedMore.addFields({ name: `#${index + 1} ${data.Username}`, value: `\`\`\`Likes: ${data.Likes}\`\`\`` });
-        });
+    data.forEach((item, index) => {
+        embed.addFields({ name: `#${index + 1} ${item.Username}`, value: `\`\`\`Likes: ${item.Likes}\`\`\`` });
+    });
 
-        const embedLess = new EmbedBuilder()
-        .setTitle('<:thumbs_down:1140523745451200583> Leaderboard')
-        .setColor("Blurple");
+    return embed;
+}
 
-        leaderboardDataLess.forEach((data, index) => {
-            embedLess.addFields({ name: `#${index + 1} ${data.Username}`, value: `\`\`\`Likes: ${data.Likes}\`\`\`` });
-        });
-
-        const select = new StringSelectMenuBuilder()
+function createSelectMenu() {
+    const select = new StringSelectMenuBuilder()
         .setCustomId('leaderboard_stringselect')
         .setPlaceholder('Select the Type')
         .addOptions(
@@ -40,23 +59,5 @@ module.exports = {
                 .setEmoji('<:thumbs_down:1140523745451200583>'),
         );
 
-        const selectRow = new ActionRowBuilder()
-        .addComponents(select)
-
-        const msg = await interaction.reply({ embeds: [embedMore], components: [selectRow], ephemeral: true })
-
-        const collector = msg.createMessageComponentCollector({ time: 180000, filter: i => i.user.id === interaction.user.id })
-
-        collector.on('collect', async i => {
-            const value = i.values[0];
-
-            if (value === 'more-likes') {
-                await interaction.editReply({ embeds: [embedMore], components: [selectRow], ephemeral: true });
-                await i.deferReply({ ephemeral: true });
-            } else if (value === 'less-likes') {
-                await interaction.editReply({ embeds: [embedLess], components: [selectRow], ephemeral: true });
-                await i.deferReply({ ephemeral: true });
-            }
-        })
-    }
+    return new ActionRowBuilder().addComponents(select);
 }

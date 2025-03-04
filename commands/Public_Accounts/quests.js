@@ -3,8 +3,8 @@ const publicAccount = require('../../schemas/publicAccount');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('missions')
-    .setDescription("View your missions"),
+    .setName('quests')
+    .setDescription("View your quests"),
     async execute(interaction, client) {
         const finder = 'Missions.status'
         const schemaData = await publicAccount.findOne({ DiscordID: interaction.user.id });

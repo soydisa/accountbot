@@ -3,6 +3,9 @@ const path = require('node:path');
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
 
+const mode = process.argv[2];
+const token = mode === "test" ? process.env.TestToken : process.env.Token;
+
 const client = new Client({
     intents: [
 		GatewayIntentBits.Guilds,
@@ -62,4 +65,6 @@ for (const file of eventFiles) {
 
 }
 
-client.login(process.env.Token);
+
+
+client.login(token);

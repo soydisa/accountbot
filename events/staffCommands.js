@@ -35,6 +35,14 @@ module.exports = {
                 if (message.channel.id === process.env.ChannelSelfAdv) {
                     await message.channel.send({ content: "**__<:partner:1140527513836199946> ISTRUZIONI SELF ADV__**\n\n•  `1` <:forward:1141603712809316392>  Si possono cercare **staff**, __membri__ per i **club**, **manager** per il vostro **server __personale__** o per il vostro **club**.  Si possono mettere queste cose soltanto in questo canale.\n\n•  `2` <:forward:1141603712809316392>  Si può **scrivere** fino ad un **massimo** di **__15__ righe**.\n\n•  `3` <:forward:1141603712809316392>  __Vietato__ inviare **link**.\n\n•  `4` <:forward:1141603712809316392>  __Vietato__ usare il **simbolo** __`#`__  a **scopo** di far diventare i __propri__ messaggi più **rilevanti**.\n\n•  `5` <:forward:1141603712809316392>  Evita **contenuti** che potrebbero risultare **offensivi**.\n\n" })
                 };
+            } else if (message.content === '!listcommands') {
+                await message.delete();
+                let Lista = [];
+                const commands = await client.application.commands.fetch();
+                commands.forEach(cmd => {
+                    Lista.push(`${cmd.name}: ${cmd.id}`)
+                });
+                await message.channel.send(Lista.join(",\n"))
             }
         }
     }

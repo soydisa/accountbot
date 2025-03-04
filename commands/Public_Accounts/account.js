@@ -66,15 +66,28 @@ module.exports = {
             const embed = new EmbedBuilder()
             .setColor(accountData.Color)
             .setAuthor({ name: accountData.Username, iconURL: accountData.Image })
-            .addFields({ name: `Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, { name: `Likes`, value: `\`\`\`${accountData.Likes}\`\`\`` }, { name: `Clubs`, value: `\`\`\`${Clubs}\`\`\`` }, { name: `Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, { name: `Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` })
+            .addFields(
+                { name: `<:stars:1140524749500465234>  Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
+                { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
+                { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
+                { name: `<:lightining:1140524539437121606> Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, 
+                { name: `<:partner:1140527513836199946> Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` }
+            )
 
             const likeButton = new ButtonBuilder()
             .setCustomId('like_button')
+            .setLabel('ㅤㅤLeave a Likeㅤㅤ')
             .setEmoji('<:thumbs_up:1140523687456542840>')
             .setStyle(ButtonStyle.Secondary)
 
+            const urlButton = new ButtonBuilder()
+            .setEmoji('<:chain:1140525058780049529>')
+            .setLabel('ㅤㅤView Profileㅤㅤ')
+            .setStyle(ButtonStyle.Link)
+            .setURL(`https://discord.com/users/${accountData.DiscordID}`)
+
             const actionRow = new ActionRowBuilder()
-            .addComponents(likeButton)
+            .addComponents(likeButton, urlButton)
 
             await submitted.deferReply({ ephemeral: true })
 
@@ -92,11 +105,17 @@ module.exports = {
                             accountData.DailyLikes--;
                             accountData.WeeklyLikes--;
                             await accountData.save();
-                            await i.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your Like has been removed from the Account`, ephemeral: true })
+                            await i.deferUpdate();
                             const embed2 = new EmbedBuilder()
                             .setColor(accountData.Color)
                             .setAuthor({ name: accountData.Username, iconURL: accountData.Image })
-                            .addFields({ name: `Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, { name: `Likes`, value: `\`\`\`${accountData.Likes}\`\`\`` }, { name: `Clubs`, value: `\`\`\`${Clubs}\`\`\`` }, { name: `Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, { name: `Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` })
+                            .addFields(
+                                { name: `<:stars:1140524749500465234>  Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
+                                { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
+                                { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
+                                { name: `<:lightining:1140524539437121606> Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, 
+                                { name: `<:partner:1140527513836199946> Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` }
+                            )
                             await submitted.editReply({ embeds: [embed2], components: [actionRow] })
                             try {
                                 const accountUser = await client.users.fetch(accountData.DiscordID)
@@ -105,18 +124,24 @@ module.exports = {
                                 return;
                             }
                         }
-    
+        
                     } else {
                         accountData.Liked.push(i.user.id);
                         accountData.Likes++;
                         accountData.DailyLikes++;
                         accountData.WeeklyLikes++;
                         await accountData.save();
-                        await i.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your Like has been added to the Account`, ephemeral: true })
+                        await i.deferUpdate();
                         const embed2 = new EmbedBuilder()
                         .setColor(accountData.Color)
                         .setAuthor({ name: accountData.Username, iconURL: accountData.Image })
-                        .addFields({ name: `Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, { name: `Likes`, value: `\`\`\`${accountData.Likes}\`\`\`` }, { name: `Clubs`, value: `\`\`\`${Clubs}\`\`\`` }, { name: `Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, { name: `Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` })
+                        .addFields(
+                            { name: `<:stars:1140524749500465234>  Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
+                            { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
+                            { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
+                            { name: `<:lightining:1140524539437121606> Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, 
+                            { name: `<:partner:1140527513836199946> Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` }
+                        )
                         await submitted.editReply({ embeds: [embed2], components: [actionRow] })
                         try {
                             const accountUser = await client.users.fetch(accountData.DiscordID)
