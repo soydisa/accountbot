@@ -9,13 +9,13 @@ module.exports = {
         const finder = 'Missions.status'
         const schemaData = await publicAccount.findOne({ DiscordID: interaction.user.id });
         if (!schemaData) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your Account doesn't exist`, ephemeral: true });
-        const activeStatus = schemaData.Missions.filter(mission => mission.status === '0').slice(0, 24);
-        const completedStatus = schemaData.Missions.filter(mission => mission.status === '1').slice(0, 24);
-        const expiredStatus = schemaData.Missions.filter(mission => mission.status === '2').slice(0, 24);
+        const activeStatus = schemaData.Missions.filter(mission => mission.status === '0').slice(0, 10);
+        const completedStatus = schemaData.Missions.filter(mission => mission.status === '1').slice(0, 10);
+        const expiredStatus = schemaData.Missions.filter(mission => mission.status === '2').slice(0, 10);
 
         const embed1 = new EmbedBuilder()
         .setColor(schemaData.Color)
-        .setTitle("<:forward:1141603712809316392> Active Missions")
+        .setTitle("<:forward:1141603712809316392> Active Quests")
         const button1 = new ButtonBuilder()
         .setCustomId('mission_button_1')
         .setStyle(ButtonStyle.Secondary)
@@ -38,7 +38,7 @@ module.exports = {
         const row3 = new ActionRowBuilder()
         .addComponents(button3)
         if (activeStatus.length < 1) {
-            embed1.addFields({ name: `Nothing to show`, value: `There isn't a Mission to show...` })
+            embed1.addFields({ name: `Nothing to show`, value: `There isn't a quest to show...` })
             await interaction.reply({ embeds: [embed1], components: [row2, row3], ephemeral: true })
         } else {
             activeStatus.forEach((mission, index) => {
@@ -48,7 +48,7 @@ module.exports = {
                 } else if (mission.type === '1') {
                     type = 'Weekly'
                 }
-                embed1.addFields({ name: `Mission ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
+                embed1.addFields({ name: `Quest ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
             });
             const msg = await interaction.reply({ embeds: [embed1], components: [row2, row3], ephemeral: true });
             const collector = msg.createMessageComponentCollector({ time: 180000, filter: i => i.user.id === interaction.user.id })
@@ -56,11 +56,11 @@ module.exports = {
                 if (i.customId === 'mission_button_1') {
                     const embed2 = new EmbedBuilder()
                     .setColor(schemaData.Color)
-                    .setTitle("<:forward:1141603712809316392> Active Missions")
+                    .setTitle("<:forward:1141603712809316392> Active Quests")
                     if (activeStatus.length < 1) {
-                        embed2.addFields({ name: `Nothing to show`, value: `There isn't a Mission to show...` })
+                        embed2.addFields({ name: `Nothing to show`, value: `There isn't a quest to show...` })
                         await interaction.editReply({ embeds: [embed2], components: [row2, row3], ephemeral: true });
-                        await i.deferReply({ ephemeral: true });
+                        await i.deferUpdate();
                     } else {
                         activeStatus.forEach((mission, index) => {
                             let type
@@ -69,20 +69,20 @@ module.exports = {
                             } else if (mission.type === '1') {
                                 type = 'Weekly'
                             }
-                            embed2.addFields({ name: `Mission ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
+                            embed2.addFields({ name: `Quest ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
                         });
                         await interaction.editReply({ embeds: [embed2], components: [row2, row3], ephemeral: true });
-                        await i.deferReply({ ephemeral: true });
+                        await i.deferUpdate();
 
                     }
                 } else if (i.customId === 'mission_button_2') {
                     const embed2 = new EmbedBuilder()
                     .setColor(schemaData.Color)
-                    .setTitle("<:forward:1141603712809316392> Completed Missions")
+                    .setTitle("<:forward:1141603712809316392> Completed Quests")
                     if (completedStatus.length < 1) {
-                        embed2.addFields({ name: `Nothing to show`, value: `There isn't a Mission to show...` })
+                        embed2.addFields({ name: `Nothing to show`, value: `There isn't a quest to show...` })
                         await interaction.editReply({ embeds: [embed2], components: [row1, row3], ephemeral: true });
-                        await i.deferReply({ ephemeral: true });
+                        await i.deferUpdate();
                     } else {
                         completedStatus.forEach((mission, index) => {
                             let type
@@ -91,19 +91,19 @@ module.exports = {
                             } else if (mission.type === '1') {
                                 type = 'Weekly'
                             }
-                            embed2.addFields({ name: `Mission ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
+                            embed2.addFields({ name: `Quest ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
                         });
                         await interaction.editReply({ embeds: [embed2], components: [row1, row3], ephemeral: true });
-                        await i.deferReply({ ephemeral: true });
+                        await i.deferUpdate();
                     }
                 } else if (i.customId === 'mission_button_3') {
                     const embed2 = new EmbedBuilder()
                     .setColor(schemaData.Color)
-                    .setTitle("<:forward:1141603712809316392> Expired Missions")
+                    .setTitle("<:forward:1141603712809316392> Expired Quests")
                     if (expiredStatus.length < 1) {
-                        embed2.addFields({ name: `Nothing to show`, value: `There isn't a Mission to show...` })
+                        embed2.addFields({ name: `Nothing to show`, value: `There isn't a quest to show...` })
                         await interaction.editReply({ embeds: [embed2], components: [row1, row2], ephemeral: true });
-                        await i.deferReply({ ephemeral: true });
+                        await i.deferUpdate();
                     } else {
                         expiredStatus.forEach((mission, index) => {
                             let type
@@ -112,10 +112,10 @@ module.exports = {
                             } else if (mission.type === '1') {
                                 type = 'Weekly'
                             }
-                            embed2.addFields({ name: `Mission ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
+                            embed2.addFields({ name: `Quest ${index + 1}`, value: `Type: **${type}**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>` })
                         });
                         await interaction.editReply({ embeds: [embed2], components: [row1, row2], ephemeral: true });
-                        await i.deferReply({ ephemeral: true });
+                        await i.deferUpdate();
                     }
                 }
             })
