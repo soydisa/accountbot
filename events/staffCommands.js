@@ -7,7 +7,7 @@ module.exports = {
     name: Events.MessageCreate,
     once: false,
     async execute (message, client) {
-        if (!message.author.bot && message.guild && message.guild.id === process.env.MainServer && message.member.roles.cache.some(role => role.id === process.env.StaffRole)) {
+        if (!message.author.bot && message.guild && message.guild.id === process.env.MainServer && message.member.roles.cache.some(role => role.id === process.env.ManagementRole)) {
             if (message.content.startsWith('!suspend')) {
                 await message.delete();
                 const args = message.content.split(' ');

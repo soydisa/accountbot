@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const MongoDBUrl = process.env.MongoDBUrl;
 require('dotenv').config();
 const publicAccount = require("../schemas/publicAccount")
+const managerMembers = require("../schemas/managerMembers")
 const club = require("../schemas/club");
-const { assignRandomMission, checkMissions, resetChannel } = require('../function');
+const { assignRandomMission, checkMissions, resetChannel, checkStaff, checkBadges, wait } = require('../function');
 const cron = require("node-cron");
 
 module.exports = {
@@ -32,25 +33,19 @@ module.exports = {
                 type: ActivityType.Custom
                 
             });
-
-            await publicAccount.updateMany(
-                { Club: { $exists: false } },
-                { $set: { Club: [] } }
-            );
-
-            await publicAccount.updateMany(
-                { Suspended: { $exists: false } },
-                { $set: { Suspended: false } }
-            );
-
-            await club.updateMany(
-                { LastAdvertised: { $exists: false } },
-                { $set: { LastAdvertised: '2011-09-15T06:00:00.000Z' } }
-            );
+            
 
             setInterval(async () => {
                 await checkMissions(publicAccount, client);
-            }, 3000);
+
+                wait(5000)
+
+                await checkStaff(publicAccount, client);
+
+                wait(5000)
+
+                await checkBadges(publicAccount, managerMembers, club, client);
+            }, 5 * 60 * 1000);
 
             const now = new Date();
             if (now.getHours() === 0 && now.getMinutes() < 10) {
@@ -65,6 +60,11 @@ module.exports = {
             console.log("SelfAdv cleaning scheduler activated");
             
             console.log("Startup completed!");
+
+            await publicAccount.updateMany(
+                { ClubEverJoined: { $exists: false } },
+                { $set: { ClubEverJoined: false } }
+            );
             
         } catch (err) {
             if (err.code === '11000') {
@@ -73,6 +73,5 @@ module.exports = {
                 console.log(err)
             }
         }
-
     }
 }

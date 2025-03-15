@@ -21,7 +21,13 @@ let publicAccount = new Schema({
             prize: { type: Number },
             status: { type: String }
         }
-    ]
+    ],
+    Badges: { type: Array, required: true, default: [] },
+    Staff: { type: Boolean, required: true, default: false },
+    ClubKickedMembers: { type: Array, required: true, default: [] },
+    FirstSelectedBadge: { type: String, required: false, default: '' },
+    SecondSelectedBadge: { type: String, required: false, default: '' },
+    ClubEverJoined: { type: Boolean, required: true, default: false }
 })
 
 module.exports = model("publicAccount", publicAccount);

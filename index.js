@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
+const { info } = require('node:console');
 
 const mode = process.argv[2];
 const token = mode === "test" ? process.env.TestToken : process.env.Token;
@@ -54,17 +55,17 @@ for (const file of eventFiles) {
 	const event = require(filePath);
 
 	if (event.once) {
-
 		client.once(event.name, (...args) => event.execute(...args, client));
 
 	} else {
-
 		client.on(event.name, (...args) => event.execute(...args, client));
 
 	}
 
 }
 
-
+client.rest.on('rateLimited', (rate) => {
+	console.log(`Rate limit encountered! Ends in ${info.timeout / 1000} seconds`)
+})
 
 client.login(token);

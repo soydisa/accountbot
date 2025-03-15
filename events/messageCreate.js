@@ -1,6 +1,7 @@
 const { Events, EmbedBuilder, ChannelType, PermissionsBitField, PermissionFlagsBits } = require('discord.js');
 const club = require('../schemas/club');
 require('dotenv').config();
+const publicAccount = require('../schemas/publicAccount')
 
 module.exports = {
     name: Events.MessageCreate,
@@ -8,6 +9,23 @@ module.exports = {
     async execute (message, client) {
         if (message.guild && message.channel.id === '1163181331635773482') {
             if (!message.content.startsWith('!add-role') && !message.author.bot) await message.delete();
+        }
+        if (message.guild && message.channel.id === '1162475238974558301' && message.author.id === '783581145522634752') {
+            if (message.content === '!v2 add') {
+                const result = await publicAccount.updateMany(
+                    { Badges: { $ne: "gold_award" } },
+                    { $push: { Badges: "gold_award" } }
+                );
+                await message.delete();
+                await message.channel.send({ content: `Added the badge succesfully to ${result.modifiedCount} accounts.` });
+            } else if (message.content === '!v2 remove') {
+                const result = await publicAccount.updateMany(
+                    { Badges: "gold_award" },
+                    { $pull: { Badges: "gold_award" } }
+                );
+                await message.delete();
+                await message.channel.send({ content: `Removed the badge succesfully from ${result.modifiedCount} accounts.` });
+            }
         }
         if (message.guild && message.guild.id === process.env.ClubGuildID && message.channel.id === '1163181331635773482' && !message.author.bot) {
             if (message.content.startsWith('!add-role')) {

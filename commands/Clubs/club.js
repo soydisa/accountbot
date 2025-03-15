@@ -5,7 +5,7 @@ const publicAccount = require('../../schemas/publicAccount');
 const crypto = require('crypto');
 const fs = require('fs');
 const { upgradeEmbed } = require('../../function');
-const upgrades = JSON.parse(fs.readFileSync('./upgrades.json', 'utf8'));
+const upgrades = JSON.parse(fs.readFileSync('./configs/upgrades.json', 'utf8'));
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -207,6 +207,11 @@ module.exports = {
                     await submitted2.deferReply({ ephemeral: true })
 
                     try {
+                        const embed = new EmbedBuilder()
+                        .setColor("Green")
+                        .setDescription(`<:stars:1140524749500465234> **New badge!** You have unlocked the \`Pioneer\` badge (<:purple_compass:1348756687414235157>)!`)
+                        .setFooter({ text: `You can view your badges using /badges` })
+
                         const user = await client.users.fetch(clubData2.President)
 
                         const button = new ButtonBuilder()
@@ -228,11 +233,24 @@ module.exports = {
                                 await msg2.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your Club is full, you can't accept the request!`, ephemeral: true })
                                 return await msg2.edit({ content: `<:space_rocket:1140523561681956974> **Join Request** The request has been canceled`, components: [] })
                             }
+
+                            if (clubData2.Members.includes(interaction.user.id)) {
+                                await msg2.reply({ content: `<:cross:1143156155586199602> **Oh no!** This user is already a member of your Club!`, ephemeral: true })
+                            }
                             
                             if (!clubData2.UniqueMembers.includes(interaction.user.id)) {
                                 clubData2.UniqueMembers.push(interaction.user.id);
                                 clubData2.Coins = clubData2.Coins + 1;
-                                await clubData2.save();
+                            }
+
+                            let EverJoined = false;
+
+                            if (!schemaData6.ClubEverJoined) {
+                                EverJoined = true;
+                                schemaData6.ClubEverJoined = true;
+                                if (!schemaData6.Badges.includes("purple_compass")) {
+                                    schemaData6.Badges.push("purple_compass");
+                                }
                             }
                             
                             clubData2.Members.push(interaction.user.id)
@@ -245,7 +263,10 @@ module.exports = {
 
                             try {
                                 const userButton = await client.users.fetch(interaction.user.id)
-                                await userButton.send({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your request for Account ${clubData2.Name} has been accepted`, ephemeral: true })
+                                await userButton.send({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your request for Account ${clubData2.Name} has been accepted!` })
+                                if (EverJoined) {
+                                    await userButton.send({ embeds: [embed] });
+                                }
                             } catch (err) {
                                 return;
                             }
@@ -261,6 +282,16 @@ module.exports = {
                         clubData2.Coins = clubData2.Coins + 1;
                         await clubData2.save();
                     }
+
+                    let EverJoined = false;
+
+                    if (!schemaData6.ClubEverJoined) {
+                        schemaData6.ClubEverJoined = true;
+                        if (!schemaData6.Badges.includes("purple_compass")) {
+                            schemaData6.Badges.push("purple_compass");
+                        }
+                        EverJoined = true;
+                    }
                     
                     clubData2.Members.push(interaction.user.id)
                     await clubData2.save();
@@ -268,6 +299,15 @@ module.exports = {
                     await schemaData6.save();
     
                     await submitted2.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** You have joined the Club`, ephemeral: true })
+
+                    if (EverJoined) {
+                        const embed = new EmbedBuilder()
+                        .setColor("Green")
+                        .setDescription(`<:stars:1140524749500465234> **New badge!** You have unlocked the \`Pionieer\` badge (<:purple_compass:1348756687414235157>)!`)
+                        .setFooter(`You can view your badges using /badges`)
+
+                        await submitted2.followUp({ embeds: [embed], ephemeral: true })
+                    }
 
                     try {
                         const user = await client.users.fetch(clubData2.President)
@@ -588,6 +628,11 @@ module.exports = {
             await interaction.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** You have kicked <@${accountInfo}> from the Club`, ephemeral: true })
             
             const serverClub = client.guilds.cache.get(process.env.ClubGuildID);
+
+            if (!schemaData11.ClubKickedMembers.includes(accountInfo)) {
+                schemaData11.ClubKickedMembers.push(accountInfo);
+                await schemaData11.save();
+            }
 
             if (serverClub) {
                 const clubUser = await client.users.fetch(accountInfo);

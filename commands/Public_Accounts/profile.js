@@ -2,11 +2,15 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ButtonBuilder, A
 const crypto = require('crypto');
 const publicAccount = require('../../schemas/publicAccount');
 let accountInfo;
+const fs = require('fs');
+const path = require('path');
+const filePath = path.join(__dirname, '../', '../', './configs', 'badges.json');
+const badges = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('account')
-    .setDescription("View an account"),
+    .setName('profile')
+    .setDescription("View a profile"),
     async execute(interaction, client) {
 
         const fields = {
@@ -22,7 +26,7 @@ module.exports = {
           
         const modal = new ModalBuilder()
         .setCustomId(`account_modal`)
-        .setTitle(`View an Account`)
+        .setTitle(`View a profile`)
         .setComponents(
             new ActionRowBuilder().addComponents(fields.username)
         )
@@ -63,11 +67,21 @@ module.exports = {
 
             const Clubs = accountData.Club.join(", ") || "None"
 
+            let space = ''
+
+            if (accountData.FirstSelectedBadge !== '' || accountData.SecondSelectedBadge !== '') {
+                space = ' '
+            }
+
+            const emoji1 = badges[accountData.FirstSelectedBadge]?.icon || ''
+            const emoji2 = badges[accountData.SecondSelectedBadge]?.icon || ''
+
             const embed = new EmbedBuilder()
             .setColor(accountData.Color)
-            .setAuthor({ name: accountData.Username, iconURL: accountData.Image })
+            .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })
             .addFields(
-                { name: `<:stars:1140524749500465234>  Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
+                { name: `<:mention:1348697599393398805> Username`, value: `\`${accountData.Username}\`${space}${emoji1}${emoji2}` },
+                { name: `<:stars:1140524749500465234> Biography`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
                 { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
                 { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
                 { name: `<:lightining:1140524539437121606> Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, 
@@ -108,9 +122,10 @@ module.exports = {
                             await i.deferUpdate();
                             const embed2 = new EmbedBuilder()
                             .setColor(accountData.Color)
-                            .setAuthor({ name: accountData.Username, iconURL: accountData.Image })
+                            .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })
                             .addFields(
-                                { name: `<:stars:1140524749500465234>  Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
+                                { name: `<:mention:1348697599393398805> Username`, value: `${accountData.Username}${space}${emoji1}${emoji2}` },
+                                { name: `<:stars:1140524749500465234> Biography`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
                                 { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
                                 { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
                                 { name: `<:lightining:1140524539437121606> Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, 
@@ -134,9 +149,10 @@ module.exports = {
                         await i.deferUpdate();
                         const embed2 = new EmbedBuilder()
                         .setColor(accountData.Color)
-                        .setAuthor({ name: accountData.Username, iconURL: accountData.Image })
+                        .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })
                         .addFields(
-                            { name: `<:stars:1140524749500465234>  Description`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
+                            { name: `<:mention:1348697599393398805> Username`, value: `${accountData.Username}${space}${emoji1}${emoji2}` },
+                            { name: `<:stars:1140524749500465234> Biography`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
                             { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
                             { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
                             { name: `<:lightining:1140524539437121606> Account ID`, value: `\`\`\`${accountData.UserID}\`\`\`` }, 

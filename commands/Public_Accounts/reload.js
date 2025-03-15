@@ -4,7 +4,7 @@ const publicAccount = require('../../schemas/publicAccount');
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('reload')
-    .setDescription("Get the reload link for your Account"),
+    .setDescription("Get the reload link for the linked roles"),
     async execute(interaction, client) {
         await interaction.reply({ content: '<:verified_2:1140890170661548073> **Oh yes!** Use _[this link](https://repeated-windy-garden.glitch.me/link)_ to reload your Account', ephemeral: true })
     }

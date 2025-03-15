@@ -2,7 +2,8 @@ const { EmbedBuilder } = require("discord.js");
 const cron = require("node-cron");
 const fs = require('fs');
 require("dotenv").config();
-const upgrades = JSON.parse(fs.readFileSync('./upgrades.json', 'utf8'));
+const upgrades = JSON.parse(fs.readFileSync('./configs/upgrades.json', 'utf8'));
+const badges = JSON.parse(fs.readFileSync('./configs/badges.json', 'utf8'));
 
 function assignRandomMission(user) {
     const missionTypes = ["0", "1"];
@@ -50,7 +51,11 @@ async function checkMissions(schema, client) {
                                 .setColor(user.Color)
                                 .setTitle("<:chain:1140525058780049529> Mission Completed!")
                                 .setDescription(`Type: **Daily**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>`)
-                                await userDM.send({ embeds: [embed] });
+                                try {
+                                    await userDM.send({ embeds: [embed] });
+                                } catch (err) {
+                                    return console.error(err);
+                                }
                             }
                         } else {
                             mission.status = '2';
@@ -72,7 +77,11 @@ async function checkMissions(schema, client) {
                                 .setColor(user.Color)
                                 .setTitle("<:chain:1140525058780049529> Mission Completed!")
                                 .setDescription(`Type: **Weekly**\nGoal: **${mission.likes}** Likes\nPrize: **${mission.prize}** Likes\nStart: <t:${Math.floor(mission.start.getTime() / 1000)}:d>`)
-                                await userDM.send({ embeds: [embed] });
+                                try {
+                                    await userDM.send({ embeds: [embed] });
+                                } catch (err) {
+                                    return console.error(err);
+                                }
                             }
                         } else {
                             mission.status = '2';
@@ -85,6 +94,161 @@ async function checkMissions(schema, client) {
     
             await user.save();
         });
+    } catch (err) {
+        return console.error(err);
+    }
+}
+
+async function checkStaff(schema, client) {
+    try {
+        const users = await schema.find({});
+
+        const guild = client.guilds.cache.get(process.env.MainServer)
+        if (!guild) return console.error("Errore nel trovare il server!");
+
+        const role = guild.roles.cache.get(process.env.StaffRole);
+        if (!role) return console.error("Errore nel trovare il ruolo!");
+
+        users.forEach(async (user) => {
+            const member = guild.members.cache.get(user.DiscordID);
+      
+            if (member) {
+                if (user.Staff) {
+                    if (!member.roles.cache.has(role.id)) {
+                        user.Staff = false;
+                        await user.save();
+                        console.log(`Staff status removed from ${member.user.username}`)
+                    }
+                } else {
+                    if (member.roles.cache.has(role.id)) {
+                        user.Staff = true;
+                        await user.save();
+                        console.log(`Staff status added to ${member.user.username}`)
+                    }
+                }
+            }
+        })
+    } catch (err) {
+        return console.error(err);
+    }
+}
+
+async function checkBadges(schema, schema2, schema3, client) {
+    try {
+        const badgeList = [
+            "blue_headset",
+            "gold_crown",
+            "acid_shield",
+            "purple_crown",
+            "red_gavel",
+            "red_code"
+        ]
+
+        const managerMembers = await schema2.findOne({ ID: 1 });
+
+        const users = await schema.find({});
+        const guild = client.guilds.cache.get(process.env.MainServer);
+        const role = guild.roles.cache.get(process.env.OwnerRole);
+        const role2 = guild.roles.cache.get(process.env.ClubOwnerRole);
+        const role3 = guild.roles.cache.get(process.env.DeveloperRole);
+        const role4 = guild.roles.cache.get(process.env.DeveloperCoordinatorRole);
+
+        users.forEach(async (user) => {
+            const member = guild.members.cache.get(user.DiscordID);
+
+            if (!user.Badges.includes(badgeList[4])) {
+                if (user.ClubKickedMembers.length >= 5) {
+                    user.Badges.push(badgeList[4]);
+                    await user.save();
+                }
+            } else {
+                const index = user.Badges.indexOf(badgeList[4]);
+                if (user.ClubKickedMembers.length < 5) {
+                    user.Badges.splice(index, 1);
+                    await user.save();
+                }
+            }
+
+            if (user.Staff) {
+                if (!user.Badges.includes(badgeList[0])) {
+                    user.Badges.push(badgeList[0]);
+                    await user.save();
+                }
+            } else {
+                const index = user.Badges.indexOf(badgeList[0]);
+                if (user.Badges.includes(badgeList[0])) {
+                    user.Badges.splice(index, 1);
+                    await user.save();
+                }
+            }
+            
+            const clubs = await schema3.find({}, 'President'); 
+            const Presidents = clubs.map(club => club.President);
+
+            if (user.Badges.includes(badgeList[3])) {
+                if (!Presidents.includes(user.DiscordID)) {
+                    const index = user.Badges.indexOf(badgeList[3]);
+                    user.Badges.splice(index, 1);
+                    await user.save();
+                }
+            } else {
+                if (Presidents.includes(user.DiscordID)) {
+                    user.Badges.push(badgeList[3]);
+                    await user.save();
+                }
+            }
+
+            if (member) {
+                if (member.roles.cache.has(process.env.ClubOwnerRole)) {
+                    if (!Presidents.includes(user.DiscordID)) {
+                        await member.roles.remove(role2);
+                    }
+                } else {
+                    if (Presidents.includes(user.DiscordID)) {
+                        await member.roles.add(role2);
+                    }
+                }
+
+                if (member.roles.cache.has(role.id)) {
+                    if (!user.Badges.includes(badgeList[1])) {
+                        user.Badges.push(badgeList[1]);
+                        await user.save();
+                    }
+                } else {
+                    const index = user.Badges.indexOf(badgeList[1]);
+                    if (user.Badges.includes(badgeList[1])) {
+                        user.Badges.splice(index, 1);
+                        await user.save();
+                    }
+                }
+
+                if (member.roles.cache.has(role3.id) || member.roles.cache.has(role4.id)) {
+                    if (!user.Badges.includes(badgeList[5])) {
+                        user.Badges.push(badgeList[5]);
+                        await user.save();
+                    }
+                } else {
+                    const index = user.Badges.indexOf(badgeList[5]);
+                    if (user.Badges.includes(badgeList[5])) {
+                        user.Badges.splice(index, 1);
+                        await user.save();
+                    }
+                }
+            }
+
+            if (managerMembers.Staff.includes(user.DiscordID)) {
+                if (!user.Badges.includes(badgeList[2])) {
+                    user.Badges.push(badgeList[2]);
+                    await user.save();
+                }
+            } else {
+                const index = user.Badges.indexOf(badgeList[2]);
+                if (user.Badges.includes(badgeList[2])) {
+                    user.Badges.splice(index, 1);
+                    await user.save();    
+                }
+            }
+        })
     } catch (err) {
         return console.error(err);
     }
@@ -115,6 +279,11 @@ function upgradeEmbed(index, color) {
             { name: "<:user:1140523944936493116> Member Slot", value: `<:space:1140523440453988433> ${upgrades[index].slots}`, inline: true }
         );
 }
-  
 
-module.exports = { assignRandomMission, checkMissions, resetChannel, upgradeEmbed }
+function wait(time) {
+    return new Promise(resolve => {
+        setTimeout(resolve, time)
+    })
+}
+
+module.exports = { assignRandomMission, checkMissions, resetChannel, upgradeEmbed, checkStaff, checkBadges, wait }

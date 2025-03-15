@@ -75,7 +75,7 @@ module.exports = {
                     const channel = client.channels.cache.get(process.env.ChannelSuggestion);
                     const msg2 = await channel.send({ embeds: [embed], components: [actionRow] })
                 	await submitted.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your suggestion will be valutated`, ephemeral: true });
-                    const collector = msg2.createMessageComponentCollector({ time: 180000, componentType: ComponentType.Button, filter: i => i.user.id === interaction.user.id });
+                    const collector = msg2.createMessageComponentCollector({ time: 860000000, componentType: ComponentType.Button, filter: i => i.user.id === interaction.user.id });
                     collector.on('collect', async i2 => {
                         const channel2 = client.channels.cache.get(process.env.ChannelSuggestionAccepted);
                         const embed2 = new EmbedBuilder()

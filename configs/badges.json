@@ -1,0 +1,74 @@
+{
+    "gold_award": {
+        "name": "Early Supporter",
+        "id": "gold_award",
+        "icon": "<:gold_award:1348756531897700423>",
+        "description": "Use the bot before v2"
+    },
+    "purple_compass": {
+        "name": "Pioneer",
+        "id": "purple_compass",
+        "icon": "<:purple_compass:1348756687414235157>",
+        "description": "Join your first club"
+    },
+    "blue_certificate": {
+        "name": "Verified",
+        "id": "blue_certificate",
+        "icon": "<:blue_certificate:1348756428365758567>",
+        "description": "Get verified on the bot"
+    },
+    "purple_crown": {
+        "name": "Club President",
+        "id": "purple_crown",
+        "icon": "<:purple_crown:1350195656777666580>",
+        "description": "Be the president of a club"
+    },
+    "red_gavel": {
+        "name": "Kick Master",
+        "id": "red_gavel",
+        "icon": "<:red_gavel:1348756729084772362>",
+        "description": "Kick 5 members from your club"
+    },
+    "orange_fireflamesimple": {
+        "name": "Fame I",
+        "id": "orange_fireflamesimple",
+        "icon": "<:orange_fireflamesimple:1348756617725739078>",
+        "description": "Reach level 1 of fame"
+    },
+    "orange_fireflamecurved": {
+        "name": "Fame II",
+        "id": "orange_fireflamecurved",
+        "icon": "<:orange_fireflamecurved:1348756601611223241>",
+        "description": "Reach level 2 of fame"
+    },
+    "orange_fire": {
+        "name": "Fame III",
+        "id": "orange_fire",
+        "icon": "<:orange_fire:1348756575132586054>",
+        "description": "Reach level 3 of fame"
+    },
+    "blue_headset": {
+        "name": "Staff",
+        "id": "blue_headset",
+        "icon": "<:blue_headset:1348756511056461845>",
+        "description": "Be an official staffer of the bot"
+    },
+    "gold_crown": {
+        "name": "Bot Owner",
+        "id": "gold_crown",
+        "icon": "<:gold_crown:1348756549224632410>",
+        "description": "Be an owner of the bot"
+    },
+    "acid_shield": {
+        "name": "Bot Admin",
+        "id": "acid_shield",
+        "icon": "<:acid_shield:1350198736520872017>",
+        "description": "Be an administrator of the bot"
+    },
+    "red_code": {
+        "name": "Developer",
+        "id": "red_code",
+        "icon": "<:red_code:1348756712626196490>",
+        "description": "Be a developer of the bot"
+    }
+}
