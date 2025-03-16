@@ -156,6 +156,22 @@ async function checkBadges(schema, schema2, schema3, client) {
         users.forEach(async (user) => {
             const member = guild.members.cache.get(user.DiscordID);
 
+            if (user.FirstSelectedBadge !== '') {
+                if (!user.Badges.includes(user.FirstSelectedBadge)) {
+                    const index = user.Badges.indexOf(user.FirstSelectedBadge);
+                    user.Badges.splice(index, 1);
+                    await user.save();
+                }
+            }
+
+            if (user.SecondSelectedBadge !== '') {
+                if (!user.Badges.includes(user.SecondSelectedBadge)) {
+                    const index = user.Badges.indexOf(user.SecondSelectedBadge);
+                    user.Badges.splice(index, 1);
+                    await user.save();
+                }
+            }
+
             if (!user.Badges.includes(badgeList[4])) {
                 if (user.ClubKickedMembers.length >= 5) {
                     user.Badges.push(badgeList[4]);

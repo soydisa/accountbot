@@ -124,7 +124,7 @@ module.exports = {
                             .setColor(accountData.Color)
                             .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })
                             .addFields(
-                                { name: `<:mention:1348697599393398805> Username`, value: `${accountData.Username}${space}${emoji1}${emoji2}` },
+                                { name: `<:mention:1348697599393398805> Username`, value: `\`${accountData.Username}\`${space}${emoji1}${emoji2}` },
                                 { name: `<:stars:1140524749500465234> Biography`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
                                 { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
                                 { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
@@ -132,11 +132,13 @@ module.exports = {
                                 { name: `<:partner:1140527513836199946> Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` }
                             )
                             await submitted.editReply({ embeds: [embed2], components: [actionRow] })
-                            try {
-                                const accountUser = await client.users.fetch(accountData.DiscordID)
-                                await accountUser.send({ content: `<:thumbs_down:1140523745451200583> **Like Alert** \`${i.user.username} (${i.user.id})\` has removed a Like from your Account! _${accountData.Likes} Likes_` })
-                            } catch (err) {
-                                return;
+                            if (accountData.DiscordID !== i.user.id) {
+                                try {
+                                    const accountUser = await client.users.fetch(accountData.DiscordID)
+                                    await accountUser.send({ content: `<:thumbs_down:1140523745451200583> **Like Alert** \`${i.user.username} (${i.user.id})\` has removed a Like from your Account! _${accountData.Likes} Likes_` })
+                                } catch (err) {
+                                    return;
+                                }
                             }
                         }
         
@@ -151,7 +153,7 @@ module.exports = {
                         .setColor(accountData.Color)
                         .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })
                         .addFields(
-                            { name: `<:mention:1348697599393398805> Username`, value: `${accountData.Username}${space}${emoji1}${emoji2}` },
+                            { name: `<:mention:1348697599393398805> Username`, value: `\`${accountData.Username}\`${space}${emoji1}${emoji2}` },
                             { name: `<:stars:1140524749500465234> Biography`, value: `\`\`\`${accountData.Description}\`\`\`` }, 
                             { name: `<:thumb:1140523687456542840> Likes`, value: `\`\`\`${accountData.Likes}\`\`\``, inline: true }, 
                             { name: `<:team:1140523980235735040> Clubs`, value: `\`\`\`${Clubs}\`\`\``, inline: true }, 
@@ -159,11 +161,13 @@ module.exports = {
                             { name: `<:partner:1140527513836199946> Discord ID`, value: `\`\`\`${accountData.DiscordID}\`\`\`` }
                         )
                         await submitted.editReply({ embeds: [embed2], components: [actionRow] })
-                        try {
-                            const accountUser = await client.users.fetch(accountData.DiscordID)
-                            await accountUser.send({ content: `<:thumbs_up:1140523687456542840> **Like Alert** \`${i.user.username} (${i.user.id})\` has added a Like to your Account! _${accountData.Likes} Likes_` })
-                        } catch (err) {
-                            return;
+                        if (accountData.DiscordID !== i.user.id) {
+                            try {
+                                const accountUser = await client.users.fetch(accountData.DiscordID)
+                                await accountUser.send({ content: `<:thumbs_up:1140523687456542840> **Like Alert** \`${i.user.username} (${i.user.id})\` has added a Like to your Account! _${accountData.Likes} Likes_` })
+                            } catch (err) {
+                                return;
+                            }
                         }
                     }
                 } catch (err) {

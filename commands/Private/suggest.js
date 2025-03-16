@@ -36,7 +36,7 @@ module.exports = {
                 .setLabel(`Suggestion`)
                 .setStyle(TextInputStyle.Short)
                 .setRequired(true)
-                .setPlaceholder('Add a dancing chicken')
+                .setPlaceholder('Type your suggestion here...')
                 .setMinLength(3)
                 .setMaxLength(30),
             }
@@ -64,7 +64,11 @@ module.exports = {
                     const embed = new EmbedBuilder()
                     .setColor("Blurple")
                     .setTitle("<:partner:1140527513836199946> New suggestion")
-                    .addFields({ name: `Author`, value: `${interaction.user}` }, { name: `Type`, value: `Bot` }, { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` })
+                    .addFields(
+                        { name: `Author`, value: `${interaction.user}` }, 
+                        { name: `Type`, value: `Bot` }, 
+                        { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` }
+                    )
                     const button = new ButtonBuilder()
                     .setCustomId('suggestion_button')
                     .setStyle(ButtonStyle.Success)
@@ -74,14 +78,17 @@ module.exports = {
                     .addComponents(button)
                     const channel = client.channels.cache.get(process.env.ChannelSuggestion);
                     const msg2 = await channel.send({ embeds: [embed], components: [actionRow] })
-                	await submitted.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your suggestion will be valutated`, ephemeral: true });
+                	await submitted.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Suggestion sent succesfully!`, ephemeral: true });
                     const collector = msg2.createMessageComponentCollector({ time: 860000000, componentType: ComponentType.Button, filter: i => i.user.id === interaction.user.id });
                     collector.on('collect', async i2 => {
                         const channel2 = client.channels.cache.get(process.env.ChannelSuggestionAccepted);
                         const embed2 = new EmbedBuilder()
                         .setColor("Blurple")
                         .setTitle("<:partner:1140527513836199946> Sugggestion accepted")
-                        .addFields({ name: `Type`, value: `Bot` }, { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` })
+                        .addFields(
+                            { name: `Type`, value: `Bot` },
+                            { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` }
+                        )
                         const toDelete = await channel2.send({ content: '@here' });
                         await toDelete.delete();
                         const reacted = await channel2.send({ embeds: [embed2] });
@@ -112,7 +119,11 @@ module.exports = {
                     const embed = new EmbedBuilder()
                     .setColor("Blurple")
                     .setTitle("<:partner:1140527513836199946> New suggestion")
-                    .addFields({ name: `Author`, value: `${interaction.user}` }, { name: `Type`, value: `Servers` }, { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` })
+                    .addFields(
+                        { name: `Author`, value: `${interaction.user}` },
+                        { name: `Type`, value: `Servers` },
+                        { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` }
+                    )
                     const button = new ButtonBuilder()
                     .setCustomId('suggestion_button')
                     .setStyle(ButtonStyle.Success)
@@ -122,14 +133,17 @@ module.exports = {
                     .addComponents(button)
                     const channel = client.channels.cache.get(process.env.ChannelSuggestion);
                     const msg2 = await channel.send({ embeds: [embed], components: [actionRow] })
-                	await submitted.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Your suggestion will be valutated`, ephemeral: true });
+                	await submitted.reply({ content: `<:verified_2:1140890170661548073> **Oh yes!** Suggestion sent succesfully!`, ephemeral: true });
                     const collector = msg2.createMessageComponentCollector({ time: 180000, componentType: ComponentType.Button, filter: i => i.user.id === interaction.user.id });
                     collector.on('collect', async i2 => {
                         const channel2 = client.channels.cache.get(process.env.ChannelSuggestionAccepted);
                         const embed2 = new EmbedBuilder()
                         .setColor("Blurple")
                         .setTitle("<:partner:1140527513836199946> Sugggestion accepted")
-                        .addFields({ name: `Type`, value: `Servers` }, { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` })
+                        .addFields(
+                            { name: `Type`, value: `Servers` }, 
+                            { name: `Suggestion`, value: `\`\`\`${suggestion}\`\`\`` }
+                        )
                         const toDelete = await channel2.send({ content: '@here' });
                         await toDelete.delete();
                         const reacted = await channel2.send({ embeds: [embed2] });

@@ -26,13 +26,15 @@ module.exports = {
                 console.log('Database connected!');
             }
 
-            const accounts = await publicAccount.countDocuments();
+            setInterval(async () => {
+                const accounts = await publicAccount.countDocuments();
 
-            client.user.setActivity({
-                name: `/register • ${accounts} Accounts • v${process.env.Version}`,
-                type: ActivityType.Custom
+                client.user.setActivity({
+                    name: `/register • ${accounts} Accounts • v${process.env.Version}`,
+                    type: ActivityType.Custom
                 
-            });
+                });
+            }, 5000);
             
 
             setInterval(async () => {

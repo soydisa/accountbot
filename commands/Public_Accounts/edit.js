@@ -1,5 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const publicAccount = require('../../schemas/publicAccount');
+const fs = require('fs');
+const path = require('path');
+const filePath = path.join(__dirname, '../', '../', './configs', 'badges.json');
+const badges = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -81,6 +85,16 @@ module.exports = {
             schemaData.Description = description;
             await schemaData.save();
             const accountData = await publicAccount.findOne({ UserID: schemaData.UserID })
+
+            let space = ''
+
+            if (accountData.FirstSelectedBadge !== '' || accountData.SecondSelectedBadge !== '') {
+                space = ' '
+            }
+
+            const emoji1 = badges[accountData.FirstSelectedBadge]?.icon || ''
+            const emoji2 = badges[accountData.SecondSelectedBadge]?.icon || ''
+
             const embed = new EmbedBuilder()
             .setColor(accountData.Color)
             .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })

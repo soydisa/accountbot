@@ -28,11 +28,11 @@ module.exports = {
             const schemaData = await club.findOne({ President: interaction.user.id })
             const schemaData2 = await publicAccount.findOne({ DiscordID: interaction.user.id })
 
-            if (schemaData) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You already are a President of a Club`, ephemeral: true })
-            if (!schemaData2) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an Account`, ephemeral: true })
-            if (schemaData2.Likes < 5) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You must have more than 5 Likes to create a Club`, ephemeral: true })
+            if (schemaData) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You already are the president of a club`, ephemeral: true })
+            if (!schemaData2) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You don't have an account`, ephemeral: true })
+            if (schemaData2.Likes < 5) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** You must have more than 5 likes to create a club`, ephemeral: true })
 
-            if (schemaData2.Suspended) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your Account is Suspended`, ephemeral: true })
+            if (schemaData2.Suspended) return await interaction.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your account is suspended`, ephemeral: true })
 
             const fields1 = {
                 name: new TextInputBuilder()
@@ -81,10 +81,10 @@ module.exports = {
 
             if (submitted) {
                 const [ name, color, private ] = Object.keys(fields1).map(key => submitted.fields.getTextInputValue(fields1[key].data.custom_id))
-                const supportedColors = ["Blue", "Blurple", "Red", "Green", "Purple", "Pink", "Black", "Yellow", "Orange"]
+                const supportedColors = ["Blue", "Blurple", "Red", "Green", "Purple", "Fuchsia", "Black", "Yellow", "Orange"]
                 const presidentID = interaction.user.id;
                 if (!supportedColors.includes(color)) {
-                    return await submitted.reply({ content: `<:cross:1143156155586199602> **Oh no!** The Color ${color} isn't a valid Color`, ephemeral: true })
+                    return await submitted.reply({ content: `<:cross:1143156155586199602> **Oh no!** The color ${color} isn't a valid color`, ephemeral: true })
                 }
 
                 const splittedName = name.split(" ")
@@ -229,18 +229,19 @@ module.exports = {
                         await submitted2.editReply({ content: `<:verified_2:1140890170661548073> **Oh yes!** The request has been sent! You will be notified in DM if you get accepted`, ephemeral: true })
 
                         collector.on('collect', async but => {
-                            if (clubData2.Members.length >= clubData2.MaxMembers) {
+                            const clubData3 = await club.findOne({ ClubID: clubInfo })
+                            if (clubData3.Members.length >= clubData2.MaxMembers) {
                                 await msg2.reply({ content: `<:cross:1143156155586199602> **Oh no!** Your Club is full, you can't accept the request!`, ephemeral: true })
                                 return await msg2.edit({ content: `<:space_rocket:1140523561681956974> **Join Request** The request has been canceled`, components: [] })
                             }
 
-                            if (clubData2.Members.includes(interaction.user.id)) {
-                                await msg2.reply({ content: `<:cross:1143156155586199602> **Oh no!** This user is already a member of your Club!`, ephemeral: true })
+                            if (clubData3.Members.includes(interaction.user.id)) {
+                                return await msg2.reply({ content: `<:cross:1143156155586199602> **Oh no!** This user is already a member of your Club!`, ephemeral: true })
                             }
                             
-                            if (!clubData2.UniqueMembers.includes(interaction.user.id)) {
-                                clubData2.UniqueMembers.push(interaction.user.id);
-                                clubData2.Coins = clubData2.Coins + 1;
+                            if (!clubData3.UniqueMembers.includes(interaction.user.id)) {
+                                clubData3.UniqueMembers.push(interaction.user.id);
+                                clubData3.Coins = clubData3.Coins + 1;
                             }
 
                             let EverJoined = false;
@@ -253,8 +254,8 @@ module.exports = {
                                 }
                             }
                             
-                            clubData2.Members.push(interaction.user.id)
-                            await clubData2.save();
+                            clubData3.Members.push(interaction.user.id)
+                            await clubData3.save();
                             schemaData6.Club.push(clubData2.Name);
                             await schemaData6.save();
 

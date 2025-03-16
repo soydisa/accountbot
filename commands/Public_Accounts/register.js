@@ -1,6 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder, ActivityType, PermissionsBitField, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 const crypto = require('crypto');
 const publicAccount = require('../../schemas/publicAccount');
+const fs = require('fs');
+const path = require('path');
+const filePath = path.join(__dirname, '../', '../', './configs', 'badges.json');
+const badges = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -58,7 +62,7 @@ module.exports = {
         })
         if (submitted) {
             const [ username, color, description ] = Object.keys(fields).map(key => submitted.fields.getTextInputValue(fields[key].data.custom_id))
-            const supportedColors = ["Blue", "Blurple", "Red", "Green", "Purple", "Pink", "Yellow", "Orange"]
+            const supportedColors = ["Blue", "Blurple", "Red", "Green", "Purple", "Fuchsia", "Yellow", "Orange"]
             const image = interaction.options.getAttachment('image').url;
             const discordID = interaction.user.id;
             const Description = description || "None"
@@ -74,6 +78,16 @@ module.exports = {
             await submitted.deferReply({ ephemeral: true });
             await publicAccount.create({ DiscordID: interaction.user.id, UserID: userID, Username: username, Color: color, Image: image, Description: description, FirstSelectedBadge: '', SecondSelectedBadge: '', Club: [], Suspended: false });
             const accountData = await publicAccount.findOne({ UserID: userID })
+
+            let space = ''
+
+            if (accountData.FirstSelectedBadge !== '' || accountData.SecondSelectedBadge !== '') {
+                space = ' '
+            }
+
+            const emoji1 = badges[accountData.FirstSelectedBadge]?.icon || ''
+            const emoji2 = badges[accountData.SecondSelectedBadge]?.icon || ''
+
             const embed = new EmbedBuilder()
             .setColor(accountData.Color)
             .setAuthor({ name: `${accountData.Username}`, iconURL: accountData.Image })
